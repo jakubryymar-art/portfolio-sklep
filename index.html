@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Meble | Portfolio</title>
+    <!-- Framework Tailwind CSS do stylizacji strony -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    
+    <!-- Pasek nawigacji -->
+    <nav class="bg-white shadow-md p-4 flex justify-between items-center fixed w-full top-0 z-40">
+        <h1 class="text-2xl font-bold text-gray-800">Drewno & Styl</h1>
+        <button onclick="toggleCart()" class="bg-gray-800 text-white px-4 py-2 rounded font-bold hover:bg-gray-700 transition">
+            🛒 Koszyk (<span id="cart-count">0</span>)
+        </button>
+    </nav>
+
+    <!-- Nagłówek -->
+    <header class="text-center pt-32 pb-20 bg-gray-200">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4 text-gray-900">Nowoczesne Meble do Twojego Wnętrza</h2>
+        <p class="text-lg text-gray-600">Wysoka jakość, polskie drewno, bezpieczne płatności.</p>
+    </header>
+
+    <!-- Lista produktów -->
+    <main class="max-w-5xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8 my-10">
+        
+        <!-- Produkt 1 -->
+        <div class="bg-white p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <img src="https://images.unsplash.com/photo-1533090481720-856c2e3e158f?w=500&q=80" alt="Stół" class="w-full h-56 object-cover rounded mb-4">
+            <h3 class="text-xl font-bold">Stół Dębowy</h3>
+            <p class="text-gray-500 mb-4">Masywny stół do jadalni.</p>
+            <div class="flex justify-between items-center">
+                <span class="text-xl font-bold">1500 zł</span>
+                <button onclick="addToCart('stol-debowy', 'Stół Dębowy', 1500)" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Dodaj</button>
+            </div>
+        </div>
+
+        <!-- Produkt 2 -->
+        <div class="bg-white p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <img src="https://images.unsplash.com/photo-1503602642458-232111445657?w=500&q=80" alt="Krzesło" class="w-full h-56 object-cover rounded mb-4">
+            <h3 class="text-xl font-bold">Krzesło Brzozowe</h3>
+            <p class="text-gray-500 mb-4">Wygodne i minimalistyczne.</p>
+            <div class="flex justify-between items-center">
+                <span class="text-xl font-bold">350 zł</span>
+                <button onclick="addToCart('krzeslo-brzozowe', 'Krzesło Brzozowe', 350)" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Dodaj</button>
+            </div>
+        </div>
+
+        <!-- Produkt 3 -->
+        <div class="bg-white p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <img src="https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=500&q=80" alt="Witryna" class="w-full h-56 object-cover rounded mb-4">
+            <h3 class="text-xl font-bold">Witryna ze szkłem</h3>
+            <p class="text-gray-500 mb-4">Idealna na ekspozycję.</p>
+            <div class="flex justify-between items-center">
+                <span class="text-xl font-bold">2100 zł</span>
+                <button onclick="addToCart('witryna-szklo', 'Witryna ze szkłem', 2100)" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Dodaj</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Wysuwany Koszyk (Sidebar) -->
+    <div id="cart-sidebar" class="fixed top-0 right-0 w-full md:w-96 h-full bg-white shadow-2xl transform translate-x-full transition-transform duration-300 p-6 z-50 flex flex-col">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <h2 class="text-2xl font-bold">Twój Koszyk</h2>
+            <button onclick="toggleCart()" class="text-gray-400 hover:text-red-500 text-3xl font-bold">&times;</button>
+        </div>
+        
+        <ul id="cart-items" class="flex-grow overflow-y-auto mb-6">
+            <li class="text-gray-400 italic mt-4 text-center" id="empty-msg">Koszyk jest pusty</li>
+        </ul>
+        
+        <div class="border-t pt-4">
+            <div class="flex justify-between items-center mb-6 text-xl">
+                <span class="font-bold">Suma:</span>
+                <span class="font-bold"><span id="cart-total">0</span> zł</span>
+            </div>
+            <!-- Przycisk przygotowany do podpięcia serwera Stripe -->
+            <button onclick="checkout()" class="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition">Kupuję i płacę</button>
+        </div>
+    </div>
+
+    <!-- Skrypt obsługujący koszyk -->
+    <script>
+        let cart = [];
+        
+        function addToCart(id, name, price) {
+            cart.push({ id, name, price });
+            updateCartUI();
+            document.getElementById('cart-sidebar').classList.remove('translate-x-full');
+        }
+
+        function updateCartUI() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const cartItems = document.getElementById('cart-items');
+            const emptyMsg = document.getElementById('empty-msg');
+            
+            cartItems.innerHTML = '';
+            let total = 0;
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<li class="text-gray-400 italic mt-4 text-center">Koszyk jest pusty</li>';
+            } else {
+                cart.forEach((item, index) => {
+                    total += item.price;
+                    cartItems.innerHTML += `
+                        <li class="flex justify-between items-center mb-4 bg-gray-50 p-3 rounded">
+                            <span class="font-medium">${item.name}</span>
+                            <span class="font-bold">${item.price} zł</span>
+                        </li>`;
+                });
+            }
+            document.getElementById('cart-total').innerText = total;
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('translate-x-full');
+        }
+
+        function checkout() {
+            if (cart.length === 0) return alert("Koszyk jest pusty!");
+            // W kolejnym kroku zmienimy to alert() na funkcję fetch(), która połączy się z naszym serwerem na Render.
+            alert("Testowy komunikat: W tym miejscu aplikacja połączy się z bezpieczną bramką płatności Stripe.");
+        }
+    </script>
+</body>
+</html>
