@@ -120,8 +120,27 @@
 
         function checkout() {
             if (cart.length === 0) return alert("Koszyk jest pusty!");
-            // W kolejnym kroku zmienimy to alert() na funkcję fetch(), która połączy się z naszym serwerem na Render.
-            alert("Testowy komunikat: W tym miejscu aplikacja połączy się z bezpieczną bramką płatności Stripe.");
+
+            // Formatujemy dane dla serwera
+            const itemsForServer = cart.map(item => {
+                return { id: item.id, quantity: 1 } 
+            });
+
+            // Łączymy stronę Vercel z Twoim nowym serwerem na Render
+            fetch("https://portfolio-sklep.onrender.com/create-checkout-session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ items: itemsForServer })
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Przekierowanie klienta do kasy Stripe!
+                window.location.href = data.url;
+            })
+            .catch(error => {
+                console.error("Błąd płatności:", error);
+                alert("Wystąpił błąd podczas łączenia z kasą.");
+            });
         }
     </script>
 </body>
